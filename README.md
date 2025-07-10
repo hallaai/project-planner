@@ -4,6 +4,8 @@
 
 ---
 
+![Main page](agenda-app.png)
+
 ## 📂 Getting Started
 
 - **Main Page:**  
