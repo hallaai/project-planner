@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Next Steps - Meeting Agenda</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    :root {
+      --button-text-color: white;
+      --button-text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      --agenda-item-text-color: #2c3e50; /* Default color for item-title and item-description */
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .slide {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 60px 80px;
+      max-width: 1200px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+      animation: slideDown 0.8s ease-out;
+    }
+    .title {
+      font-size: 3.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      letter-spacing: -0.02em;
+    }
+    .date {
+      font-size: 1rem;
+      color: #95a5a6;
+      font-weight: 500;
+    }
+    .agenda-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+    .agenda-item {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 16px;
+      padding: 30px 30px 30px 10px; /* Remove extra top padding */
+      border-left: 5px solid transparent;
+      position: relative;
+      transition: all 0.3s ease;
+      animation: fadeInUp 0.8s ease-out;
+      animation-fill-mode: both;
+    }
+    .agenda-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    }
+    .item-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: white;
+      position: absolute;
+      top: 0; /* Position at the very top edge */
+      left: 0; /* Position at the very left edge */
+      z-index: 2;
+      /* Removed margin-bottom as it's absolutely positioned */
+    }
+    .item-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--agenda-item-text-color); /* Use CSS variable */
+      margin-bottom: 10px;
+      line-height: 1.3;
+      /* Removed margin-left to align with agenda-item's padding-left */
+      cursor: text;
+    }
+    .item-description {
+      font-size: 1rem;
+      color: #5a6c7d;
+      line-height: 1.6;
+      /* Removed margin-left to align with agenda-item's padding-left */
+      cursor: text;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+      padding-top: 30px;
+      border-top: 1px solid #e9ecef;
+      animation: fadeIn 1s ease-out 1s both;
+    }
+    .footer-text {
+      font-size: 1rem;
+      color: #7f8c8d;
+      font-weight: 500;
+    }
+    .priority-selector,
+    .status-selector {
+      /* Remove absolute positioning for both */
+      position: static;
+      display: flex;
+      gap: 5px;
+    }
+    .status-selector {
+      /* Remove top: 55px; */
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .priority-btn,
+    .status-btn {
+      padding: 4px 7px; /* 1.5 times less height (6px -> 4px), and less background (12px -> 8px) */
+      border: none;
+      border-radius: 15px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      opacity: 0.3;
+      color: var(--button-text-color);
+      text-shadow: var(--button-text-shadow);
+    }
+    .priority-btn.active,
+    .status-btn.active {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    .priority-btn.high {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    .priority-btn.medium {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+    .priority-btn.low {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    }
+    .status-btn.empty {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    }
+    .status-btn.todo {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+    .status-btn.in-progress {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+    .status-btn.done {
+      background: linear-gradient(135deg, #27ae60, #229954);
+    }
+    /* New CSS for semitransparency when status is 'Done' */
+    .agenda-item.done {
+      opacity: 0.5;
+      border-left-color: transparent !important;
+    }
+    .agenda-item.done .status-selector {
+      opacity: 1;
+    }
+    .agenda-item.done .status-btn {
+      opacity: 0.3;
+      filter: blur(1px);
+      transition: opacity 0.2s, filter 0.2s;
+    }
+    .agenda-item.done .status-btn.done {
+      opacity: 1 !important;
+      filter: none !important;
+      z-index: 1;
+    }
+    .add-new-btn {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2ecc71;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .color-input-container {
+      position: absolute;
+      top: 15px;
+      left: 60px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-input-container label {
+      font-size: 0.9rem;
+      color: #5a6c7d;
+    }
+    .color-input-container input[type="text"] {
+      padding: 6px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #343a40;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .color-input-container input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    }
+    .priority-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      margin-top: 0;
+      padding-left: 40px; /* Add left padding to avoid overlap with .item-number */
+    }
+    .extra-input {
+      flex: 1 1 50%;
+      margin-right: 10px;
+      color: #ff0000;
+      width: 0; /* let flex grow it */
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 1rem;
+      min-width: 0;
+      /* Remove margin-top since it's now inline */
+    }
+    .priority-selector {
+      flex: 1 1 50%;
+      display: flex;
+      gap: 5px;
+      position: static; /* Remove absolute positioning for inline layout */
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @media (max-width: 768px) {
+      .slide {
+        padding: 40px 30px;
+        margin: 10px;
+      }
+      .title {
+        font-size: 2.4rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+      }
+      .agenda-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .agenda-item {
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header">
+      <input
+        type="text"
+        class="title"
+        id="agendaTitle"
+        value="Project Plan"
+        style="font-size:3.2rem;font-weight:700;color:#2c3e50;margin-bottom:15px;letter-spacing:-0.02em;text-align:center;border:none;background:transparent;outline:none;width:100%;"
+        autocomplete="off"
+      />
+      <input
+        type="text"
+        class="date"
+        id="agendaDate"
+        style="font-size:1rem;color:#95a5a6;font-weight:500;border:none;background:transparent;text-align:center;outline:none;"
+        pattern="\d{4}-\d{2}-\d{2}"
+        placeholder="YYYY-MM-DD"
+        inputmode="numeric"
+        maxlength="10"
+        autocomplete="off"
+      />
+      <script>
+        // Set today's date as default in YYYY-MM-DD format
+        const dateInput = document.getElementById('agendaDate');
+        function pad(n) { return n.toString().padStart(2, '0'); }
+        function toYMD(date) {
+          return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+        }
+        dateInput.value = toYMD(new Date());
+
+        // Normalize input to yyyy-mm-dd format
+        function normalizeDateInput(val) {
+          // Accepts formats like yyyy-mm-dd, yyyy/mm/dd, yyyy.mm.dd, yyyy mm dd, yyyymmdd
+          let cleaned = val.replace(/[^0-9]/g, '');
+          if (cleaned.length === 8) {
+            return cleaned.slice(0,4) + '-' + cleaned.slice(4,6) + '-' + cleaned.slice(6,8);
+          }
+          // Try to match yyyy-mm-dd with any separator
+          const match = val.match(/^(\d{4})\D?(\d{2})\D?(\d{2})$/);
+          if (match) {
+            return `${match[1]}-${match[2]}-${match[3]}`;
+          }
+          return '';
+        }
+
+        dateInput.addEventListener('blur', function() {
+          const normalized = normalizeDateInput(this.value);
+          if (normalized) this.value = normalized;
+        });
+
+        dateInput.addEventListener('change', function() {
+          const normalized = normalizeDateInput(this.value);
+          if (normalized) this.value = normalized;
+        });
+
+        dateInput.addEventListener('input', function() {
+          // Optionally, restrict to numbers and dashes only as user types
+          this.value = this.value.replace(/[^0-9\-]/g, '').slice(0, 10);
+        });
+      </script>
+    </div>
+
+    <!-- Add New Item Button and Color Input -->
+    <div class="add-new-btn" onclick="addNewItem()">+</div>
+    <div class="color-input-container">
+      <label for="customColor">Text Color:</label>
+      <input type="color" id="customColor" value="#ff0000" />
+      <label for="fontSizeSelect" style="margin-left:10px;">Font Size:</label>
+      <select id="fontSizeSelect" style="padding:2px 6px;">
+        <option value="1rem">Normal</option>
+        <option value="1.25rem">Large</option>
+        <option value="1.5rem">X-Large</option>
+        <option value="2rem">XX-Large</option>
+      </select>
+      <button id="boldToggle" type="button" style="font-weight:bold;padding:2px 10px; border-radius:5px; border:1px solid #ccc; background:#fff; cursor:pointer; margin-left:8px;">B</button>
+    </div>
+
+    <div class="agenda-container" id="agendaContainer"></div>
+
+    <div class="footer">
+      <p class="footer-text"></p>
+    </div>
+  </div>
+
+  <script>
+    // 10 distinct (non-red) colors
+    const cardColors = [
+      "#3498db", // blue
+      "#27ae60", // green
+      "#f39c12", // orange
+      "#8e44ad", // purple
+      "#d35400", // burnt orange
+      "#2980b9", // darker blue
+      "#e67e22", // orange-brown
+      "#1abc9c", // turquoise
+      "#34495e", // dark gray-blue
+      "#2ecc71"  // light green
+    ];
+    let colorIndex = 0;
+
+    function addNewItem() {
+      const container = document.getElementById('agendaContainer');
+      const newItem = document.createElement('div');
+      newItem.className = 'agenda-item';
+
+      // Pick color from set, cycle through
+      const cardColor = cardColors[colorIndex % cardColors.length];
+      colorIndex++;
+
+      newItem.dataset.cardColor = cardColor; // Store original color for restoration
+      newItem.style.borderLeftColor = cardColor;
+
+      newItem.innerHTML = `
+        <div class="item-number" style="background: ${cardColor};">${container.children.length + 1}</div>
+        <div class="priority-row">
+          <input class="extra-input" type="text" placeholder="" />
+          <div class="priority-selector">
+            <button class="priority-btn high active" onclick="setPriority(this, 'high')">High</button>
+            <button class="priority-btn medium" onclick="setPriority(this, 'medium')">Med</button>
+            <button class="priority-btn low" onclick="setPriority(this, 'low')">Low</button>
+          </div>
+        </div>
+        <h3 class="item-title" contenteditable="true">New Task Title</h3>
+        <p class="item-description" contenteditable="true">New task description...</p>
+        <div class="status-selector">
+          <button class="status-btn empty active" onclick="setStatus(this, 'empty')">Empty</button>
+          <button class="status-btn todo" onclick="setStatus(this, 'todo')">To be done</button>
+          <button class="status-btn in-progress" onclick="setStatus(this, 'in-progress')">In progress</button>
+          <button class="status-btn done" onclick="setStatus(this, 'done')">Done</button>
+        </div>
+      `;
+      container.appendChild(newItem);
+
+      // Set styles for all extra-input fields to current controls
+      updateExtraInputStyles();
+    }
+
+    // Update color, font size, and bold for all extra-input fields
+    function updateExtraInputStyles() {
+      const color = document.getElementById('customColor').value || '#ff0000';
+      const fontSize = document.getElementById('fontSizeSelect').value || '1rem';
+      const isBold = document.getElementById('boldToggle').classList.contains('active');
+      document.querySelectorAll('.extra-input').forEach(input => {
+        input.style.color = color;
+        input.style.fontSize = fontSize;
+        input.style.fontWeight = isBold ? 'bold' : 'normal';
+      });
+    }
+
+    // Listen for color picker, font size, and bold toggle changes
+    document.getElementById('customColor').addEventListener('input', updateExtraInputStyles);
+    document.getElementById('fontSizeSelect').addEventListener('change', updateExtraInputStyles);
+    document.getElementById('boldToggle').addEventListener('click', function() {
+      this.classList.toggle('active');
+      updateExtraInputStyles();
+    });
+
+    function setPriority(clickedBtn, priority) {
+      const prioritySelector = clickedBtn.parentElement;
+      prioritySelector.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('active'));
+      clickedBtn.classList.add('active');
+    }
+
+    function setStatus(clickedBtn, status) {
+      const statusSelector = clickedBtn.parentElement;
+      const agendaItem = statusSelector.closest('.agenda-item');
+
+      statusSelector.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+      clickedBtn.classList.add('active');
+
+      if (status === 'done') {
+        agendaItem.classList.add('done');
+        agendaItem.style.borderLeftColor = 'transparent';
+      } else {
+        agendaItem.classList.remove('done');
+        // Restore original color from data attribute
+        agendaItem.style.borderLeftColor = agendaItem.dataset.cardColor || '#3498db';
+        // Restore all status buttons to normal
+        statusSelector.querySelectorAll('.status-btn').forEach(btn => {
+          btn.style.opacity = '';
+          btn.style.filter = '';
+        });
+      }
+    }
+  </script>
+</body>
+</html>
